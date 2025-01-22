@@ -7,7 +7,8 @@
   "scripts": {
     "dev:front": "vite",
     "dev:back": "nodemon server/index.js",
-    "build": "vite build",
+    "build": "vite build && npm run build:server",
+    "build:server": "tsc server/*.js --allowJs --outDir dist",
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "node server/index.js"
