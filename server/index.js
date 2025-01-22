@@ -1,119 +1,74 @@
 import express from 'express';
-import mysql from 'mysql2/promise';
 import cors from 'cors';
+import { errorHandler } from './core/errorHandler.js';
+import './core/database.js';
+import authRoutes from './routes/authRoutes.js';
+import inventoryRoutes from './routes/inventoryRoutes.js';
+import salesRoutes from './routes/salesRoutes.js';
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT; // Railway asigna el puerto automáticamente
 
-// Database configuration
-const dbConfig = {
-  host: 'atusaludlicoreria.com',
-  database: 'atusalud_base1',
-  user: 'atusalud_atusalud',
-  password: 'kmachin1',
-  port: 3306
+// Configurar CORS
+const whitelist = [
+  'http://localhost:5173', // Vite dev server
+  process.env.VERCEL_URL // URL de Vercel en producción
+].filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (whitelist.includes(origin) || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 };
 
-// Middleware
-app.use(cors());
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+// Middlewares base
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Create database connection pool with enhanced configuration
-const pool = mysql.createPool({
-  ...dbConfig,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  connectTimeout: 10000, // 10 seconds
-  idleTimeout: 60000, // 1 minute
-  enableKeepAlive: true,
-  keepAliveInitialDelay: 10000 // 10 seconds
+// Formato de respuestas API
+app.use((req, res, next) => {
+  res.apiSuccess = (data, message = '') => {
+    res.json({
+      success: true,
+      data,
+      message
+    });
+  };
+  next();
 });
 
-// API Endpoints
-app.get('/api/ventas', async (req, res) => {
-  try {
-    const connection = await pool.getConnection();
-    const [rows] = await connection.query('SELECT * FROM ventas_totales_2024');
-    connection.release();
-    res.json(rows);
-  } catch (error) {
-    console.error('Error fetching sales:', error);
-    res.status(500).json({ error: 'Error al obtener las ventas' });
-  }
-});
+// Headers de seguridad para producción
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    next();
+  });
+}
 
-app.get('/api/ventas/total', async (req, res) => {
-  try {
-    const connection = await pool.getConnection();
-    const [rows] = await connection.query('SELECT COUNT(*) as total FROM ventas_totales_2024');
-    connection.release();
-    res.json(rows[0]);
-  } catch (error) {
-    console.error('Error fetching total sales:', error);
-    res.status(500).json({ error: 'Error al obtener el total de ventas' });
-  }
-});
+// Rutas principales
+app.use('/api/auth', authRoutes);
+app.use('/api/inventario', inventoryRoutes);
+app.use('/api/sales', salesRoutes);
 
-app.get('/api/ventas/total-value', async (req, res) => {
-  try {
-    const connection = await pool.getConnection();
-    // Convert USD to PEN (1 USD = 3.75 PEN)
-    const [rows] = await connection.query(
-      'SELECT SUM(Precio * Cantidad * 3.75) as totalValue FROM ventas_totales_2024'
-    );
-    connection.release();
-    res.json(rows[0]);
-  } catch (error) {
-    console.error('Error fetching total sales value:', error);
-    res.status(500).json({ error: 'Error al obtener el valor total de ventas' });
-  }
-});
+// Manejo de errores (DEBE ser el último middleware)
+app.use(errorHandler);
 
-app.get('/api/ventas/total-units', async (req, res) => {
-  try {
-    const connection = await pool.getConnection();
-    const [rows] = await connection.query(
-      'SELECT SUM(Cantidad) as totalUnits FROM ventas_totales_2024'
-    );
-    connection.release();
-    res.json(rows[0]);
-  } catch (error) {
-    console.error('Error fetching total units sold:', error);
-    res.status(500).json({ error: 'Error al obtener el total de unidades vendidas' });
-  }
-});
-
-// New endpoint for sede statistics
-app.get('/api/ventas/sede-stats', async (req, res) => {
-  try {
-    const connection = await pool.getConnection();
-    const [rows] = await connection.query(
-      'SELECT Sede, SUM(Precio * Cantidad * 3.75) as totalValue FROM ventas_totales_2024 GROUP BY Sede'
-    );
-    connection.release();
-    res.json(rows);
-  } catch (error) {
-    console.error('Error fetching sede stats:', error);
-    res.status(500).json({ error: 'Error al obtener estadísticas por sede' });
-  }
-});
-
-app.get('/api/ventas/unique-products', async (req, res) => {
-  try {
-    const connection = await pool.getConnection();
-    const [rows] = await connection.query(
-      'SELECT COUNT(DISTINCT SKU) as uniqueProducts FROM ventas_totales_2024'
-    );
-    connection.release();
-    res.json(rows[0]);
-  } catch (error) {
-    console.error('Error fetching unique products:', error);
-    res.status(500).json({ error: 'Error al obtener el total de productos únicos vendidos' });
-  }
-});
-
-// Start server
+// Inicio del servidor con nueva configuración DB
 app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+  console.log(`🚀 Server running on port ${port}`);
+  console.log(`📅 ${new Date().toLocaleString()}`);
+  console.log(`💻 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log('✅ Database connection established');
 });

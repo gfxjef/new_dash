@@ -34,9 +34,9 @@ const [hoveredProduct, setHoveredProduct] = useState<InventarioProducto | null>(
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {topProductos.map((producto) => (
+            {topProductos.map((producto, index) => (
               <tr 
-                key={producto.SKU}
+                key={`${producto.SKU}-${index}`}
                 className="hover:bg-gray-50 cursor-pointer"
                 onMouseEnter={(e) => {
                   const rect = e.currentTarget.getBoundingClientRect();
@@ -79,8 +79,8 @@ const [hoveredProduct, setHoveredProduct] = useState<InventarioProducto | null>(
               >
                 <h3 className="font-semibold mb-2">Cantidad por sede:</h3>
                 <ul>
-                  {Object.entries(hoveredProduct.sedes).map(([sede, cantidad]) => (
-                    <li key={sede} className="text-sm">
+                  {Object.entries(hoveredProduct.sedes).map(([sede, cantidad], index) => (
+                    <li key={`${sede}-${index}`} className="text-sm">
                       {sede}: {cantidad}
                     </li>
                   ))}

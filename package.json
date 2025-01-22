@@ -3,21 +3,29 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "server/index.js",
   "scripts": {
-    "dev": "vite",
+    "dev:front": "vite",
+    "dev:back": "nodemon server/index.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server": "node server/index.js"
+    "start": "node server/index.js"
+  },
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
   },
   "dependencies": {
     "@types/chart.js": "^2.9.41",
+    "@types/cors": "^2.8.17",
     "@types/react-date-range": "^1.4.9",
     "@types/react-router-dom": "^5.3.3",
     "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
     "chart.js": "^4.4.7",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "lucide-react": "^0.344.0",
     "mysql2": "^3.12.0",
