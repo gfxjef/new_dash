@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import express from 'express';
 import cors from 'cors';
 import { errorHandler } from './core/errorHandler.js';
@@ -8,7 +7,7 @@ import inventoryRoutes from './routes/inventoryRoutes.js';
 import salesRoutes from './routes/salesRoutes.js';
 
 const app = express();
-const port = process.env.PORT; // Railway asigna el puerto automáticamente
+const port = process.env.PORT || 3002;
 
 // Configurar CORS
 const whitelist = [
