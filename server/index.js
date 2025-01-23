@@ -18,10 +18,14 @@ const whitelist = [
 
 const corsOptions = {
   origin: (origin, callback) => {
+    console.log('[CORS Debug] Origen detectado:', origin);
+    console.log('[CORS Debug] Whitelist:', whitelist);
     if (whitelist.includes(origin) || !origin) {
+      console.log('[CORS Debug] Origen permitido');
       callback(null, true);
     } else {
-      callback(new Error(`Origen no permitido por CORS: ${origin}`));
+      console.log('[CORS Debug] Origen bloqueado');
+      callback(new Error(`Origen no permitido: ${origin}. Whitelist: ${whitelist}`));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
