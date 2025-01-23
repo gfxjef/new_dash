@@ -18,19 +18,26 @@ const whitelist = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    console.log('[CORS Debug] Origen detectado:', origin);
-    console.log('[CORS Debug] Whitelist:', whitelist);
-    if (whitelist.includes(origin) || !origin) {
-      console.log('[CORS Debug] Origen permitido');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[CORS Development] Permitir cualquier origen');
+      return callback(null, true);
+    }
+
+    console.log('[CORS Production] Origen detectado:', origin);
+    console.log('[CORS Production] Whitelist:', whitelist);
+    
+    if (whitelist.includes(origin)) {
+      console.log('[CORS Production] Origen permitido');
       callback(null, true);
     } else {
-    console.log('[CORS Debug] Origen bloqueado');
-    callback(new Error(`Origen no permitido: ${origin}. Whitelist: ${JSON.stringify(whitelist)}`));
+      console.log('[CORS Production] Origen bloqueado');
+      callback(new Error(`Origen no permitido en producción`), false);
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: true,
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
