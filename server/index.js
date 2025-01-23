@@ -12,26 +12,25 @@ const port = process.env.PORT || 3002;
 // Configurar CORS
 const whitelist = [
   'http://localhost:5173',
-  process.env.FRONTEND_URL,
-  process.env.VERCEL_URL
-].filter(Boolean);
+  'https://new-dash-dptvg2k8b-gfxjefs-projects.vercel.app'
+];
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[CORS Development] Permitir cualquier origen');
+    // Permitir sin origen en desarrollo y solicitudes del mismo origen
+    if (!origin || process.env.NODE_ENV === 'development') {
       return callback(null, true);
     }
 
-    console.log('[CORS Production] Origen detectado:', origin);
-    console.log('[CORS Production] Whitelist:', whitelist);
+    console.log('[CORS] Origen detectado:', origin);
     
-    if (whitelist.includes(origin)) {
-      console.log('[CORS Production] Origen permitido');
+    const allowedOrigins = new Set(whitelist);
+    if (allowedOrigins.has(origin)) {
+      console.log('[CORS] Origen permitido');
       callback(null, true);
     } else {
-      console.log('[CORS Production] Origen bloqueado');
-      callback(new Error(`Origen no permitido en producción`), false);
+      console.log('[CORS] Origen bloqueado');
+      callback(new Error('Origen no permitido'), false);
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -44,7 +43,7 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
 // Middlewares base
-app.use(express.json());
+app.use(express.json({ strict: true, type: 'application/json' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Formato de respuestas API
@@ -80,6 +79,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Rutas principales
+app.use('/api/auth', authRoutes);
 app.use('/api/inventario', inventoryRoutes);
 app.use('/api/sales', salesRoutes);
 
