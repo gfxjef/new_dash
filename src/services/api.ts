@@ -6,7 +6,8 @@ const api = axios.create({
     ? 'https://new-dash-c3ly.onrender.com/api' 
     : 'http://localhost:3002/api', // Configuración para producción/desarrollo
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest'
   }
 });
 

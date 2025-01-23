@@ -10,34 +10,37 @@ const app = express();
 const port = process.env.PORT || 3002;
 
 // Configurar CORS
-const whitelist = [
-  'https://new-dash-ny3z2dvy9-gfxjefs-projects.vercel.app',
-  'https://new-dash-c3ly.onrender.com'
-]; // Orígenes permitidos en producción
-
 const corsOptions = {
   origin: (origin, callback) => {
-    // Permitir sin origen en desarrollo y solicitudes del mismo origen
     if (!origin || process.env.NODE_ENV === 'development') {
       return callback(null, true);
     }
 
     console.log('[CORS] Origen detectado:', origin);
     
-    const allowedOrigins = new Set(whitelist);
-    if (allowedOrigins.has(origin)) {
+    const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
+    if (allowedOrigins.includes(origin)) {
       console.log('[CORS] Origen permitido');
       callback(null, true);
     } else {
       console.log('[CORS] Origen bloqueado');
-      callback(new Error('Origen no permitido'), false);
+      callback(new Error('Origen no permitido por CORS'), false);
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 204
 };
+
+// Endpoint de diagnóstico CORS
+app.get('/cors-check', (req, res) => {
+  res.json({
+    allowedOrigins: process.env.ALLOWED_ORIGINS,
+    headers: req.headers,
+    corsConfig: corsOptions
+  });
+});
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
@@ -72,9 +75,8 @@ if (process.env.NODE_ENV === 'production') {
 app.get('/api/health', (req, res) => {
   res.apiSuccess({
     status: 'active',
-    corsWhitelist: whitelist,
     nodeEnv: process.env.NODE_ENV,
-    allowedOrigins: whitelist
+    allowedOrigins: process.env.ALLOWED_ORIGINS
   });
 });
 
