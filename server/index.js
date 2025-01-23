@@ -24,8 +24,8 @@ const corsOptions = {
       console.log('[CORS Debug] Origen permitido');
       callback(null, true);
     } else {
-      console.log('[CORS Debug] Origen bloqueado');
-      callback(new Error(`Origen no permitido: ${origin}. Whitelist: ${whitelist}`));
+    console.log('[CORS Debug] Origen bloqueado');
+    callback(new Error(`Origen no permitido: ${origin}. Whitelist: ${JSON.stringify(whitelist)}`));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
