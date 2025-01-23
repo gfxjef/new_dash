@@ -2,7 +2,9 @@ import axios from 'axios';
 import type { InventarioProducto } from '../types.d';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002/api',
+  baseURL: import.meta.env.PROD 
+    ? 'https://new-dash-c3ly.onrender.com/api' 
+    : 'http://localhost:3002/api', // Configuración para producción/desarrollo
   headers: {
     'Content-Type': 'application/json'
   }

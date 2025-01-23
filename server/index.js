@@ -11,9 +11,9 @@ const port = process.env.PORT || 3002;
 
 // Configurar CORS
 const whitelist = [
-  process.env.FRONTEND_URL,
-  process.env.VERCEL_URL
-].filter(Boolean); // URLs desde variables de entorno
+  'https://new-dash-ny3z2dvy9-gfxjefs-projects.vercel.app',
+  'https://new-dash-c3ly.onrender.com'
+]; // Orígenes permitidos en producción
 
 const corsOptions = {
   origin: (origin, callback) => {
