@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import express from 'express';
 import cors from 'cors';
 import { errorHandler } from './core/errorHandler.js';
@@ -8,25 +7,37 @@ import inventoryRoutes from './routes/inventoryRoutes.js';
 import salesRoutes from './routes/salesRoutes.js';
 
 const app = express();
-const port = process.env.PORT; // Railway asigna el puerto automáticamente
+const port = process.env.PORT || 3002;
 
 // Configurar CORS
 const whitelist = [
-  'http://localhost:5173', // Vite dev server
-  process.env.VERCEL_URL // URL de Vercel en producción
+  'http://localhost:5173',
+  process.env.FRONTEND_URL,
+  process.env.VERCEL_URL
 ].filter(Boolean);
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (whitelist.includes(origin) || !origin) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[CORS Development] Permitir cualquier origen');
+      return callback(null, true);
+    }
+
+    console.log('[CORS Production] Origen detectado:', origin);
+    console.log('[CORS Production] Whitelist:', whitelist);
+    
+    if (whitelist.includes(origin)) {
+      console.log('[CORS Production] Origen permitido');
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      console.log('[CORS Production] Origen bloqueado');
+      callback(new Error(`Origen no permitido en producción`), false);
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: true,
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
@@ -58,8 +69,17 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// Endpoint de diagnóstico
+app.get('/api/health', (req, res) => {
+  res.apiSuccess({
+    status: 'active',
+    corsWhitelist: whitelist,
+    nodeEnv: process.env.NODE_ENV,
+    allowedOrigins: whitelist
+  });
+});
+
 // Rutas principales
-app.use('/api/auth', authRoutes);
 app.use('/api/inventario', inventoryRoutes);
 app.use('/api/sales', salesRoutes);
 
