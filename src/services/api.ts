@@ -46,9 +46,9 @@ export const getSalesByBrand = async (startDate: string, endDate: string) => {
   return response.data;
 };
 
-export const login = async (usuario: string, password: string) => {
+export const login = async (username: string, password: string) => {
   try {
-    const response = await api.post('/auth/login', { usuario, password });
+    const response = await api.post('/auth/login', { username, password });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
