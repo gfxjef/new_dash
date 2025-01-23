@@ -11,9 +11,9 @@ const port = process.env.PORT || 3002;
 
 // Configurar CORS
 const whitelist = [
-  'http://localhost:5173',
-  'https://new-dash-dptvg2k8b-gfxjefs-projects.vercel.app'
-];
+  process.env.FRONTEND_URL,
+  process.env.VERCEL_URL
+].filter(Boolean); // URLs desde variables de entorno
 
 const corsOptions = {
   origin: (origin, callback) => {
