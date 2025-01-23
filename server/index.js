@@ -11,8 +11,9 @@ const port = process.env.PORT || 3002;
 
 // Configurar CORS
 const whitelist = [
-  'http://localhost:5173', // Vite dev server
-  process.env.VERCEL_URL // URL de Vercel en producción
+  'http://localhost:5173',
+  process.env.FRONTEND_URL,
+  process.env.VERCEL_URL
 ].filter(Boolean);
 
 const corsOptions = {
@@ -20,7 +21,7 @@ const corsOptions = {
     if (whitelist.includes(origin) || !origin) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error(`Origen no permitido por CORS: ${origin}`));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
