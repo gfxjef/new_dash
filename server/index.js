@@ -13,18 +13,32 @@ const port = process.env.PORT || 3002;
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin || process.env.NODE_ENV === 'development') {
+      console.log('[CORS] Desarrollo - Permitido:', origin);
       return callback(null, true);
     }
 
     console.log('[CORS] Origen detectado:', origin);
     
     const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
-    if (allowedOrigins.includes(origin)) {
-      console.log('[CORS] Origen permitido');
+    
+    // Verificar si el origen coincide con algún patrón permitido
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (allowedOrigin.startsWith('https://') && allowedOrigin.includes('*')) {
+        const regexPattern = allowedOrigin
+          .replace(/\./g, '\\.')
+          .replace(/\*/g, '.*');
+        const regex = new RegExp(`^${regexPattern}$`);
+        return regex.test(origin);
+      }
+      return allowedOrigin === origin;
+    });
+
+    if (isAllowed) {
+      console.log('[CORS] Origen permitido:', origin);
       callback(null, true);
     } else {
-      console.log('[CORS] Origen bloqueado');
-      callback(new Error('Origen no permitido por CORS'), false);
+      console.error('[CORS] Origen bloqueado:', origin);
+      callback(new Error(`Origen no permitido: ${origin}`), false);
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
