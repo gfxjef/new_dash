@@ -62,8 +62,17 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// Endpoint de diagnóstico
+app.get('/api/health', (req, res) => {
+  res.apiSuccess({
+    status: 'active',
+    corsWhitelist: whitelist,
+    nodeEnv: process.env.NODE_ENV,
+    allowedOrigins: whitelist
+  });
+});
+
 // Rutas principales
-app.use('/api/auth', authRoutes);
 app.use('/api/inventario', inventoryRoutes);
 app.use('/api/sales', salesRoutes);
 
