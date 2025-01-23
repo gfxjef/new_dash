@@ -27,8 +27,5 @@ export const errorHandler = (err, req, res, next) => {
     response.error.stack = err.stack;
   }
 
-  res.status(err.statusCode || 500).header({
-    'Access-Control-Allow-Origin': process.env.FRONTEND_URL,
-    'Vary': 'Origin'
-  }).json(response);
+  res.status(err.statusCode || 500).json(response);
 };
