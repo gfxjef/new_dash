@@ -2,12 +2,9 @@ import axios from 'axios';
 import type { InventarioProducto } from '../types.d';
 
 const api = axios.create({
-  baseURL: import.meta.env.PROD 
-    ? 'https://new-dash-c3ly.onrender.com/api' 
-    : 'http://localhost:3002/api', // Configuración para producción/desarrollo
+  baseURL: 'http://localhost:3002/api',
   headers: {
-    'Content-Type': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest'
+    'Content-Type': 'application/json'
   }
 });
 
@@ -46,9 +43,9 @@ export const getSalesByBrand = async (startDate: string, endDate: string) => {
   return response.data;
 };
 
-export const login = async (username: string, password: string) => {
+export const login = async (usuario: string, password: string) => {
   try {
-    const response = await api.post('/auth/login', { username, password });
+    const response = await api.post('/auth/login', { usuario, password });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

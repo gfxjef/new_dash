@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import express from 'express';
 import cors from 'cors';
 import { errorHandler } from './core/errorHandler.js';
@@ -7,60 +8,32 @@ import inventoryRoutes from './routes/inventoryRoutes.js';
 import salesRoutes from './routes/salesRoutes.js';
 
 const app = express();
-const port = process.env.PORT || 3002;
+const port = process.env.PORT; // Railway asigna el puerto automáticamente
 
 // Configurar CORS
+const whitelist = [
+  'http://localhost:5173', // Vite dev server
+  process.env.VERCEL_URL // URL de Vercel en producción
+].filter(Boolean);
+
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || process.env.NODE_ENV === 'development') {
-      console.log('[CORS] Desarrollo - Permitido:', origin);
-      return callback(null, true);
-    }
-
-    console.log('[CORS] Origen detectado:', origin);
-    
-    const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
-    
-    // Verificar si el origen coincide con algún patrón permitido
-    const isAllowed = allowedOrigins.some(allowedOrigin => {
-      if (allowedOrigin.startsWith('https://') && allowedOrigin.includes('*')) {
-        const regexPattern = allowedOrigin
-          .replace(/\./g, '\\.')
-          .replace(/\*/g, '.*');
-        const regex = new RegExp(`^${regexPattern}$`);
-        return regex.test(origin);
-      }
-      return allowedOrigin === origin;
-    });
-
-    if (isAllowed) {
-      console.log('[CORS] Origen permitido:', origin);
+    if (whitelist.includes(origin) || !origin) {
       callback(null, true);
     } else {
-      console.error('[CORS] Origen bloqueado:', origin);
-      callback(new Error(`Origen no permitido: ${origin}`), false);
+      callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true,
-  optionsSuccessStatus: 204
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 };
-
-// Endpoint de diagnóstico CORS
-app.get('/cors-check', (req, res) => {
-  res.json({
-    allowedOrigins: process.env.ALLOWED_ORIGINS,
-    headers: req.headers,
-    corsConfig: corsOptions
-  });
-});
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
 // Middlewares base
-app.use(express.json({ strict: true, type: 'application/json' }));
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Formato de respuestas API
@@ -84,15 +57,6 @@ if (process.env.NODE_ENV === 'production') {
     next();
   });
 }
-
-// Endpoint de diagnóstico
-app.get('/api/health', (req, res) => {
-  res.apiSuccess({
-    status: 'active',
-    nodeEnv: process.env.NODE_ENV,
-    allowedOrigins: process.env.ALLOWED_ORIGINS
-  });
-});
 
 // Rutas principales
 app.use('/api/auth', authRoutes);
